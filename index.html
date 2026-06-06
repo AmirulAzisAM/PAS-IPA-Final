@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Penilaian Akhir">
+  <meta name="theme-color" content="#0f172a">
+  <title>Penilaian Akhir Semester 2026</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    * { font-family: 'Poppins', sans-serif; }
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+    body { position: fixed; overflow: hidden; -webkit-user-select: none; user-select: none; }
+    #app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    .slide-up { animation: slideUp 0.4s ease-out; }
+    .pulse-warning { animation: pulseWarning 0.6s infinite; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseWarning { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .cheat-detected { background-color: #fee2e2 !important; border: 2px solid #dc2626 !important; }
+    .transition-smooth { transition: all 0.3s ease; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    @media (max-width: 768px) {
+      input, select, textarea, button { font-size: 16px !important; -webkit-appearance: none; appearance: none; }
+      input[type="text"], input[type="number"], select, textarea { border-radius: 12px; padding: 12px 16px; }
+      button { min-height: 44px; padding: 12px 16px; }
+      .soal-option { min-height: 52px; }
+    }
+    input:focus, select:focus, textarea:focus { font-size: 16px; }
+    @supports (padding: max(0px)) { body { padding-top: max(0px, env(safe-area-inset-top)); } }
+  </style>
+ </head>
+ <body class="h-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+  <div id="app" class="h-full w-full overflow-auto">
+   
+   <div id="page-login-siswa" class="min-h-full flex items-center justify-center p-4 fade-in">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+     <div class="text-center mb-6"><img id="logo-sekolah" src="https://i.ibb.co.com/Fb4z5Krm/LOGO-TRANSPARANT.png" alt="Logo Sekolah" class="w-16 h-16 mx-auto mb-4 drop-shadow-lg" onerror="this.style.display='none'">
+      <h1 id="school-name" class="text-lg sm:text-xl font-800 text-blue-900 leading-tight">SMPN 14 Banjarbaru</h1>
+      <p id="exam-title" class="text-sm sm:text-lg font-700 text-slate-700 mt-2">Penilaian Akhir Semester - IPA</p>
+     </div>
+     <form id="form-login-siswa" class="space-y-4">
+      <div><label for="inp-nama" class="block text-sm font-600 text-slate-700 mb-2">Nama Lengkap</label> <input id="inp-nama" type="text" required class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition-smooth" placeholder="Masukkan nama lengkap"></div>
+      <div><label for="inp-nomor-siswa" class="block text-sm font-600 text-slate-700 mb-2">Nomor Siswa</label> <input id="inp-nomor-siswa" type="number" required class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition-smooth" placeholder="Contoh: 12345"></div>
+      <div><label for="inp-kelas" class="block text-sm font-600 text-slate-700 mb-2">Kelas</label> <select id="inp-kelas" required class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition-smooth"> <option value="">Pilih Kelas</option> <option value="7A">7A</option> <option value="7B">7B</option> <option value="7C">7C</option> </select></div>
+      <div><label for="inp-mapel" class="block text-sm font-600 text-slate-700 mb-2">Mata Pelajaran</label> <select id="inp-mapel" required class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition-smooth"> <option value="">Pilih Mata Pelajaran</option> <option value="IPA">IPA</option> </select></div>
+      <button type="submit" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-700 py-3 rounded-lg transition-smooth flex items-center justify-center gap-2 mt-6"> <span>Masuk Ujian</span> <i data-lucide="arrow-right" style="width:18px;height:18px;"></i> </button>
+     </form>
+     <div class="mt-6 pt-6 border-t border-slate-200"><button id="btn-admin-login" class="w-full text-sm text-slate-500 hover:text-blue-900 transition-smooth font-500 py-2 rounded-lg hover:bg-slate-50"> Admin? Masuk Panel </button></div>
+    </div>
+   </div>
+
+   <div id="page-pre-exam" class="min-h-full flex items-center justify-center p-4 fade-in hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 sm:p-8">
+     <div class="flex items-start gap-4 mb-6">
+      <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0"><i data-lucide="alert-circle" style="width:24px;height:24px;color:#dc2626;"></i></div>
+      <div>
+       <h2 class="text-xl sm:text-2xl font-800 text-slate-800">Perhatian Penting!</h2>
+       <p class="text-slate-500 mt-1 text-sm">Baca instruksi dengan seksama sebelum memulai ujian</p>
+      </div>
+     </div>
+     <div class="space-y-4 mb-8 bg-slate-50 p-4 sm:p-6 rounded-lg">
+      <div class="flex gap-3"><div class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center flex-shrink-0 text-sm font-700">1</div><p class="text-slate-700 text-sm"><strong>Dilarang membuka tab baru atau beralih aplikasi.</strong> Sistem akan mendeteksi gangguan.</p></div>
+      <div class="flex gap-3"><div class="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center flex-shrink-0 text-sm font-700">2</div><p class="text-slate-700 text-sm"><strong>Timer berjalan 90 menit.</strong> Jawaban tersimpan otomatis secara real-time.</p></div>
+     </div>
+     <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+      <p class="text-xs sm:text-sm text-blue-900 font-600 mb-4"><i data-lucide="info" style="width:16px;height:16px;display:inline;margin-right:8px;"></i> Dengan mengklik "Mulai Ujian", Anda bersedia mematuhi aturan.</p>
+      <div><label for="inp-honor-pledge" class="block text-xs sm:text-sm font-600 text-blue-900 mb-3">Bukti Kejujuran:</label> <input id="inp-honor-pledge" type="text" placeholder="Ketik: Saya mengerjakan dengan jujur" class="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition-smooth text-sm"></div>
+     </div>
+     <div class="flex gap-4 flex-col sm:flex-row"><button type="button" id="btn-cancel-pre-exam" class="flex-1 px-6 py-3 border-2 border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-smooth font-600"> Kembali </button> <button type="button" id="btn-start-exam" class="flex-1 px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-smooth font-600 flex items-center justify-center gap-2"> <span>Mulai Ujian</span> <i data-lucide="play" style="width:18px;height:18px;"></i> </button></div>
+    </div>
+   </div>
+
+   <div id="page-exam" class="min-h-full p-3 sm:p-4 flex flex-col lg:flex-row gap-3 sm:gap-4 hidden">
+    <div class="hidden lg:block w-40 xl:w-48 flex-shrink-0">
+     <div class="bg-white rounded-xl shadow-lg p-4 sticky top-4 max-h-[calc(100vh-32px)] overflow-y-auto">
+      <h3 class="text-xs sm:text-sm font-700 text-slate-700 mb-3">Navigasi Soal</h3>
+      <div id="nav-soal" class="grid gap-2" style="grid-template-columns: repeat(4, 1fr);"></div>
+     </div>
+    </div>
+    <div class="flex-1 flex flex-col">
+     <div class="bg-white rounded-xl shadow-lg p-4 mb-3 sm:mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+       <div class="flex-1">
+        <p class="text-xs sm:text-sm text-slate-500 font-500">Soal <span id="current-soal">1</span> dari <span id="total-soal">0</span></p>
+        <div class="w-full h-2 bg-slate-200 rounded-full mt-2"><div id="progress-bar" class="h-2 bg-blue-900 rounded-full transition-all" style="width:0%"></div></div>
+       </div>
+       <div id="timer-display" class="flex items-center gap-2 bg-red-50 text-red-700 px-3 py-2 rounded-lg font-700 text-sm sm:text-base flex-shrink-0"><i data-lucide="clock" style="width:18px;height:18px;"></i> <span id="timer-text">90:00</span></div>
+      </div>
+     </div>
+     <div id="anti-cheat-warning" class="bg-red-50 border-2 border-red-300 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 hidden pulse-warning flex items-start gap-3">
+      <div class="text-red-900 font-700 text-xs sm:text-sm">⚠️ PERINGATAN: Fokus browser terputus!</div>
+     </div>
+     <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 flex-1 overflow-y-auto">
+      <div id="soal-area" class="slide-up">
+       <div id="soal-stimulus" class="mb-6 text-slate-700 leading-relaxed text-sm"></div>
+       <h3 id="soal-pertanyaan" class="text-base sm:text-lg font-700 text-slate-800 mb-5"></h3>
+       <div id="soal-opsi" class="space-y-2 sm:space-y-3"></div>
+      </div>
+      <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 sm:gap-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
+       <button id="btn-prev-soal" class="px-4 py-2 border-2 border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-smooth font-600 text-sm"> ← Sebelumnya </button>
+       <div class="text-xs sm:text-sm text-slate-500 text-center" id="soal-info"></div>
+       <button id="btn-next-soal" class="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-smooth font-600 text-sm"> Selanjutnya → </button>
+      </div>
+     </div>
+    </div>
+    <div class="hidden lg:block w-40 xl:w-48 flex-shrink-0">
+     <div class="bg-white rounded-xl shadow-lg p-4 sticky top-4">
+      <h3 class="text-xs sm:text-sm font-700 text-slate-700 mb-3">Info Ujian</h3>
+      <div class="text-xs space-y-2 text-slate-600">
+       <p><strong>Nama:</strong> <span id="info-nama">-</span></p>
+       <p><strong>Nomor:</strong> <span id="info-nomor">-</span></p>
+       <p><strong>Kelas:</strong> <span id="info-kelas">-</span></p>
+       <p><strong>Mapel:</strong> <span id="info-mapel">-</span></p>
+      </div>
+      <button id="btn-akhiri-ujian" class="w-full mt-4 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-smooth font-600 text-xs"> Akhiri Ujian </button>
+     </div>
+    </div>
+   </div>
+
+   <div id="page-evaluasi" class="min-h-full p-4 flex items-center justify-center fade-in hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 sm:p-8 my-4">
+     <div class="text-center mb-6">
+      <h2 class="text-xl sm:text-2xl font-800 text-slate-800">Review Hasil Ujian</h2>
+      <p class="text-slate-500 mt-2 text-sm">Periksa kembali sebelum mengirimkan ke server database</p>
+     </div>
+     <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+      <div class="bg-blue-50 rounded-lg p-3 sm:p-4 text-center"><p class="text-2xl sm:text-3xl font-800 text-blue-900" id="eval-total-soal">0</p><p class="text-xs text-slate-600 mt-1">Total Soal</p></div>
+      <div class="bg-green-50 rounded-lg p-3 sm:p-4 text-center"><p class="text-2xl sm:text-3xl font-800 text-green-600" id="eval-benar">0</p><p class="text-xs text-slate-600 mt-1">Benar</p></div>
+      <div class="bg-red-50 rounded-lg p-3 sm:p-4 text-center"><p class="text-2xl sm:text-3xl font-800 text-red-600" id="eval-salah">0</p><p class="text-xs text-slate-600 mt-1">Salah</p></div>
+     </div>
+     <div class="bg-slate-50 rounded-lg p-4 mb-6 max-h-64 overflow-y-auto space-y-2 text-sm" id="eval-detail-soal"></div>
+     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+      <button type="button" id="btn-eval-back" class="flex-1 px-4 py-3 border-2 border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-smooth font-600 text-sm"> ← Kembali Periksa </button> 
+      <button type="button" id="btn-eval-submit" class="flex-1 px-4 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-smooth font-600 text-sm flex items-center justify-center gap-2"> <span>Kirim Jawaban Akhir</span> </button>
+     </div>
+    </div>
+   </div>
+
+   <div id="page-survei-gform" class="min-h-full flex flex-col items-center justify-center p-4 fade-in hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 sm:p-8 flex flex-col text-center">
+     <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i data-lucide="clipboard-list" style="width:32px;height:32px;color:#1e3a5f;"></i>
+     </div>
+     <h2 class="text-xl sm:text-2xl font-800 text-slate-800">Survei Evaluasi</h2>
+     <p class="text-slate-500 mt-2 text-sm mb-6">Data ujian Anda sudah masuk ke database! Mohon isi survei singkat melalui tautan Google Form di bawah ini sebelum Anda dapat melihat hasil nilai Anda.</p>
+     
+     <div class="bg-slate-50 p-6 rounded-xl border-2 border-slate-200 mb-6 flex flex-col items-center">
+      <a href="https://forms.gle/MWwys3cMu3z2hvvq5" target="_blank" class="px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-smooth font-700 flex items-center gap-3 shadow-lg transform hover:scale-105">
+       <i data-lucide="external-link" style="width:24px;height:24px;"></i>
+       <span>Buka Google Form Survei</span>
+      </a>
+      <p class="text-xs text-slate-400 mt-4">(Link akan terbuka di tab baru)</p>
+     </div>
+
+     <div class="pt-4 border-t border-slate-200">
+      <p class="text-xs text-slate-500 mb-3">Klik tombol di bawah ini hanya jika Anda sudah selesai mengisi form survei.</p>
+      <button type="button" id="btn-lanjut-hasil" class="w-full px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-smooth font-600 flex items-center justify-center gap-2">
+       <span>Saya Sudah Mengisi Survei (Lihat Nilai)</span>
+       <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+      </button>
+     </div>
+    </div>
+   </div>
+
+   <div id="page-hasil" class="min-h-full flex items-center justify-center p-4 fade-in hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 text-center">
+     <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"><i data-lucide="check-circle" style="width:40px;height:40px;color:#16a34a;"></i></div>
+     <h2 class="text-2xl sm:text-3xl font-800 text-slate-800">Ujian Berhasil Dikirim!</h2>
+     <p class="text-slate-500 mt-2 mb-6 text-sm">Jawaban Anda aman tersimpan di cloud database server sekolah.</p>
+     <div class="grid grid-cols-2 gap-4 mb-8">
+      <div class="bg-green-50 rounded-xl p-4"><p class="text-3xl font-800 text-green-600" id="hasil-benar">0</p><p class="text-slate-600 text-xs sm:text-sm font-600 mt-1">Benar</p></div>
+      <div class="bg-red-50 rounded-xl p-4"><p class="text-3xl font-800 text-red-600" id="hasil-salah">0</p><p class="text-slate-600 text-xs sm:text-sm font-600 mt-1">Salah</p></div>
+     </div>
+     <div class="bg-slate-50 rounded-lg p-4 space-y-2 text-left mb-6 text-xs sm:text-sm">
+      <p><strong class="text-slate-700">Nama:</strong> <span id="hasil-nama">-</span></p>
+      <p><strong class="text-slate-700">Nomor Siswa:</strong> <span id="hasil-nomor">-</span></p>
+      <p><strong class="text-slate-700">Kelas:</strong> <span id="hasil-kelas">-</span></p>
+      <p><strong class="text-slate-700">Mata Pelajaran:</strong> <span id="hasil-mapel">-</span></p>
+     </div>
+     <div id="hasil-status" class="text-sm text-green-600 mb-6 font-600">✓ Berhasil Sinkronisasi Cloud</div>
+     <button id="btn-logout" class="w-full px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-smooth font-600 text-sm"> Keluar </button>
+    </div>
+   </div>
+
+  </div>
+
+  <script>
+  // 1. Inisialisasi Firebase Config Anda
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlB68lF_-GGS6WcwMTsvw1zV0hgkCWkkE",
+      authDomain: "cbt-ipa-3cc86.firebaseapp.com",
+      projectId: "cbt-ipa-3cc86",
+      storageBucket: "cbt-ipa-3cc86.firebasestorage.app",
+      messagingSenderId: "589887763094",
+      appId: "1:589887763094:web:85946dae4811f75428c8b7"
+    };
+
+    // Initialize Firebase melalui object compat global
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Sesi Data Aplikasi
+    let sessionData = { nama: "", nomor: "", kelas: "", mapel: "" };
+    let currentSoalIndex = 0;
+    let userAnswers = {};
+    let timerInterval = null;
+    let sisaWaktu = 90 * 60; // 90 menit dalam detik
+    
+    // Variabel Tambahan untuk Sistem Anti-Cheat
+    let jumlahPelanggaran = 0;
+    const MAKSIMAL_PELANGGARAN = 3; 
+    let isExamActive = false; // Flag untuk memastikan anti-cheat hanya aktif saat mengerjakan soal
+
+    // Bank Soal Default
+    let soalList = [
+      {
+        id: 1,
+        stimulus: "",
+        pertanyaan: "Rendy menggosok-gosok kedua tangannya lalu ditempel ke pipinya. Dia merasakan hangat pada telapak tangannya. Suatu sensasi atau ukuran derajat dingin maupun panasnya suatu benda disebut dengan ….",
+        opsi: ["Derajat", "Suhu", "Kehangatan", "Arus Panas"],
+        kunci: 1
+      },
+      {
+        id: 2,
+        stimulus: "",
+        pertanyaan: "Suatu alat untuk mengukur derajat dingin atau panasnya suatu benda disebut dengan…",
+        opsi: ["Telapak Tangan", "Hidrometer", "Termometer", "Meteran"],
+        kunci: 2
+      },
+      {
+        id: 3,
+        stimulus: "",
+        pertanyaan: "Lana menyadari bahwa es batu yang sedang dia pegang sangat dingin sehingga tangannya mulai memerah. Tapi dia sebenarnya tidak bisa mengetahui berapa derajat suhunya. Mengapa tangan tidak dapat digunakan sebagai alat pengukur suhu yang tepat?",
+        opsi: ["Tangan hanya bisa merasakan suhu yang panas dan suhu yang dingin", "Tangan tidak memiliki saraf peraba yang peka terhadap suhu", "Suhu tangan selalu berubah-ubah sesuai keadaan di sekitar", "Pengukuran pada tangan bersifat subyektif dan tidak punya skala tetap"],
+        kunci: 3
+      },
+      {
+        id: 4,
+        stimulus: "",
+        pertanyaan: "Suhu memiliki Satuan Internasional (SI) untuk setiap pengukurannya. Satuan tersebut ialah …..",
+        opsi: ["Kelvin", "Celcius", "Reamur", "Fahrenheit"],
+        kunci: 0
+      },
+      {
+        id: 5,
+        stimulus: "",
+        pertanyaan: "Keanu menggunakan termometer untuk mengukur suhunya karena lagi demam. Termometer menunjukkan hasil 37°C di layar. Apabila diubah menjadi skala Kelvin maka hasilnya adalah …..",
+        opsi: ["280 K", "290 K", "300 K", "310 K"],
+        kunci: 2
+      },
+      {
+        id: 6,
+        stimulus: "",
+        pertanyaan: "Indra sedang tinggal di Amerika Serikat. Suhu tubuhnya ketika dia cek terakhir menggunakan termometer yang dia bawa ke Amerika menunjukkan 35°C. Amerika Serikat menggunakan skala Fahrenheit untuk pengukuran suhunya. Suhu Indra sekarang adalah ….",
+        opsi: ["91°F", "93°F", "95°F", "97°F"],
+        kunci: 2
+      },
+      {
+        id: 7,
+        stimulus: "<img src='https://i.ibb.co.com/67J35PJy/listrik.jpg' alt='Instalasi Kabel Listrik' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Seorang teknisi memasang kabel listrik pada siang hari yang sangat terik. Mengapa teknisi tersebut harus memasang kabel dengan keadaan yang agak kendur dan tidak tegang?",
+        opsi: ["Untuk menghemat menggunakan kabel listrik", "Agar kabel tidak putus ketika menyusut pada malam hari", "Agar kabel memiliki ruang untuk memuai lebih panjang pada siang hari", "Agar hambatan listrik semakin kecil"],
+        kunci: 1
+      },
+      {
+        id: 8,
+        stimulus: "",
+        pertanyaan: "Ketika Surya memegang es batu di tangannya lalu seketika telapak tangan menjadi dingin. Fenomena tersebut dapat menyatakan bahwa ….",
+        opsi: ["Suhu es batu dan tangan Surya adalah sama", "Rasa dingin dari es batu berpindah menuju tangan Surya sehingga menjadi dingin", "Panas dari tangan Surya berpindah menuju es batu sehingga tangan merasakan dingin", "Tangan Surya telah dingin terlebih dahulu sebelumnya"],
+        kunci: 2
+      },
+      {
+        id: 9,
+        stimulus: "",
+        pertanyaan: "Ketika siang hari, suhu di Banjarbaru yaitu 32°C. Namun ketika malam hari suhunya menjadi 26°C. Berapa selisih perubahan suhu dalam celcius?",
+        opsi: ["6°C", "8°C", "-6°C", "-8°C"],
+        kunci: 0
+      },
+      {
+        id: 10,
+        stimulus: "<img src='https://i.ibb.co.com/hRKKWCPD/daging-sapi.jpg' alt='Daging Sapi' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Rendy menaruh daging sapi qurban dengan massa 2 kilogram yang memiliki suhu awal yaitu 20°C pada freezer di kulkasnya. Setelah beberapa jam, suhu akhir di freezer menjadi -5°C sehingga daging menjadi beku. Apabila kalor jenis daging sapi sebesar 3500 J/Kg°C maka kalor yang diperlukan untuk membekukan daging ialah …..  ",
+        opsi: ["-125.000 Joule", "-150.000 Joule", "-175.000 Joule", "-200.000 Joule"],
+        kunci: 1
+      },
+      {
+        id: 11,
+        stimulus: "",
+        pertanyaan: "Pemasangan bingkai kaca pada jendela seringkali dibuat sedikit lebih lebar daripada ukuran kacanya. Hal tersebut memiliki tujuan untuk ….",
+        opsi: ["Mencegah udara dingin masuk ke ruangan", "Kaca seringkali menyusut ketika siang hari", "Menghindari kaca memuai pada siang hari", "Agar kaca tidak terlepas ketika angin kencang"],
+        kunci: 2
+      },
+      {
+        id: 12,
+        stimulus: "<img src='https://i.ibb.co.com/1f8NvhC6/PHOTO-. .jpg' alt='Api Unggun' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Perkemahan biasanya melakukan suatu kegiatan yaitu api unggun. Saat kamu duduk di dekat api unggun, wajahmu terasa panas. Padahal udara adalah isolator yang baik dan udara panas cenderung bergerak ke atas. Perpindahan panas yang kamu rasakan adalah…",
+        opsi: ["Anomali", "Konveksi", "Konduksi", "Radiasi"],
+        kunci: 3
+      },
+      {
+        id: 13,
+        stimulus: "",
+        pertanyaan: "Sebuah benda dikatakan bergerak terhadap suatu titik acuan tertentu apabila ….",
+        opsi: ["Benda tersebut diam terhadap titik acuan tersebut", "Benda tersebut memiliki kecepatan sama dengan 0", "Posisi benda tersebut berubah dari titik acuan tersebut", "Jarak benda terhadap titik acuan tetap"],
+        kunci: 2
+      },
+      {
+        id: 14,
+        stimulus: "",
+        pertanyaan: "Ardo sedang menaiki kereta cepat Whoosh dari Kota Bandung menuju Jakarta dengan kecepatan 350 Km/Jam. Ardo yang bergerak ke depan dari kereta melihat pepohonan bergerak mundur melalui kaca jendela. Fenomena gerak tersebut dinamakan….",
+        opsi: ["Gerak Semu", "Gerak Relatif", "Gerak Tak Tetap", "Gerak Melingkar"],
+        kunci: 1
+      },
+      {
+        id: 15,
+        stimulus: "",
+        pertanyaan: "Wildan sedang mengukur panjang sebuah meja belajar di rumahnya menggunakan penggaris beberapa kali. Dia menjumlahkan pengukurannya sebesar 215 centimeter. Dalam Satuan Internasional (SI) pada pengukuran panjang, maka panjang meja tersebut adalah ….",
+        opsi: ["0,00215 kilometer", "2150 millimeter", "2,15 meter", "21,5 desimeter"],
+        kunci: 2
+      },
+      {
+        id: 16,
+        stimulus: "<img src='https://i.ibb.co.com/VcXW2yqc/Denah.png' alt='Denah Perjalanan' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Fachri bergerak menuju rumah Aditya lalu berangkat ke sekolah bersama-sama. Ketika pulang sekolah mereka ingin ke rumah Nizam untuk kerja kelompok IPA sehingga pulang pukul 17.00 WITA. Fachri melalui rute yang sama yaitu melalui sekolah-rumah Aditya lalu kembali ke rumahnya. Jarak tempuh dan perpindahan Fachri berturut-turut adalah ……",
+        opsi: ["1000 meter & 1000 meter", "1500 meter & 0 meter", "1000 meter & 0 meter", "1500 meter & 1500 meter"],
+        kunci: 1
+      },
+      {
+        id: 17,
+        stimulus: "",
+        pertanyaan: "Jarak dari Landasan Ulin menuju Banjarmasin dihitung sebesar 25.000 meter. Apabila sebuah motor menempuh jarak tersebut dengan waktu sebesar 2500 sekon, maka kecepatan dari motor tersebut adalah ….",
+        opsi: ["25 m/s", "20 m/s", "15 m/s", "10 m/s"],
+        kunci: 3
+      },
+      {
+        id: 18,
+        stimulus: "<img src='https://i.ibb.co.com/WpYB2fxf/Tabel.png' alt='Tabel Nilai Atletik' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Di sekolah, pak Budianto sedang mengambil nilai atletik (lari) untuk siswa 7A yang nilainya berdasarkan di tabel. Apabila jarak mereka lari sebesar 100 meter. Maka urutan yang paling lambat dan paling cepat adalah ….",
+        opsi: ["4-2-1-3", "4-3-1-2", "4-1-3-2", "4-3-2-1"],
+        kunci: 2
+      },
+      {
+        id: 19,
+        stimulus: "",
+        pertanyaan: "Ketika kita sedang naik mobil lalu tiba tiba melaju kencang, tubuh kita seketika terdorong ke belakang dan apabila direm secara mendadak maka tubuh akan terdorong ke depan. Fenomena ini merupakan hukum kemalasan atau kelembaman yaitu …..",
+        opsi: ["Hukum I Newton", "Hukum II Newton", "Hukum III Newton", "Hukum IV Newton"],
+        kunci: 0
+      },
+      {
+        id: 20,
+        stimulus: "",
+        pertanyaan: "Sebuah motor memiliki gaya dorong 2500 Newton melaju di jalanan yang lurus. Apabila percepatannya bertambah dari 1 m/s² ke 2 m/s² maka keadaan gaya dorong dari motor tersebut yang paling mendekati adalah …..",
+        opsi: ["Motor akan melambat laju dengan gaya dorong sekitar 2000 Newton", "Motor akan tiba tiba diam", "Motor akan tetap berjalan dengan kecepatan yang konstan", "Motor akan lebih cepat dengan gaya dorong sekitar 3500 N"],
+        kunci: 3
+      },
+      {
+        id: 21,
+        stimulus: "<img src='https://i.ibb.co.com/1GLZSZv2/Mobil-tol.png' alt='Mobil Tol' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Mobil Alphard dan mobil Pajero sedang melaju di jalan tol sejauh 36 kilometer. Apabila mobil Alphard menempuh jarak tersebut dengan waktu 20 menit dan Pajero dengan waktu 25 menit. Maka pernyataan yang tepat adalah ….",
+        opsi: ["Percepatan Alphard = Percepatan Pajero", "Percepatan Alphard > Percepatan Pajero", "Percepatan Alphard < Percepatan Pajero", "Keduanya sama sama menempuh waktu yang sama"],
+        kunci: 1
+      },
+      {
+        id: 22,
+        stimulus: "<img src='https://i.ibb.co.com/xqpsKQSg/Tarik-tambang-juga.png' alt='Tarik Tambang' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Dua tim sedang lomba tarik tambang. Kedua tim masing-masing memiliki 5 orang penarik dengan gaya yang berbeda-beda pada gambar. Apabila keadaannya tim kiri menarik lebih besar dari tim kanan, maka tim kanan harus lebih besar gaya tarikannya agar menang. Gaya tarikan yang diperlukan berturut-turut pada gambar orang tersebut adalah ….",
+        opsi: ["150 Newton & 200 Newton", "100 Newton & 300 Newton", "200 Newton & 50 Newton", "200 Newton & 100 Newton"],
+        kunci: 1
+      },
+      {
+        id: 23,
+        stimulus: "<img src='https://i.ibb.co.com/LhtwSLFS/pickup-dorong.png' alt='Pickup Didorong' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Mobil pickup sedang mogok lalu didorong oleh 3 orang dengan masing-masing gaya 175 Newton. Apabila mobil tersebut memiliki gaya minimal sebesar 1050 Newton agar terdorong, maka orang yang diperlukan lagi untuk mencapai gaya minimal adalah …..",
+        opsi: ["Tidak perlu menambah orang", "1 Orang", "2 Orang", "3 Orang"],
+        kunci: 3
+      },
+      {
+        id: 24,
+        stimulus: "<img src='https://i.ibb.co.com/NdxYF6sP/pickup-merah.png' alt='Pickup Merah' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Pickup merah membawa 6 kotak berisi barang dagangan dengan masing-masing kotak bermassa 20 kilogram. Apabila massa mobil sebesar 1480 kilogram dan mobil tersebut melaju dengan percepatan 2,5 m/s<sup>2</sup> maka gaya dorong mobil pickup tersebut adalah ……",
+        opsi: ["2500 Newton", "3000 Newton", "4000 Newton", "4500 Newton"],
+        kunci: 2
+      },
+      {
+        id: 25,
+        stimulus: "<img src='https://i.ibb.co.com/Txq7qrKz/hilux.png' alt='Hilux' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Jika barang-barang tersebut memiliki massa 200 kilogram and massa Hilux sebesar 1000 kilogram. Apabila Hilux memiliki gaya dorong sebesar 3600 Newton, percepatan (a) oleh Hilux tersebut ketika berjalan adalah ….",
+        opsi: ["2 m/s<sup>2</sup>", "3 m/s<sup>2</sup>", "1 m/s<sup>2</sup>", "4 m/s<sup>2</sup>"],
+        kunci: 1
+      },
+      {
+        id: 26,
+        stimulus: "<img src='https://i.ibb.co.com/kNQcFqk/mobil-tabrak.png' alt='Tabrakan Mobil' style='max-width:100%; height:auto; border-radius:8px; margin-bottom:12px;'>",
+        pertanyaan: "Apabila mobil kiri memiliki massa 1000 kilogram dengan percepatan 2,5 m/s<sup>2</sup> sedangkan mobil kanan memiliki massa 900 kilogram dengan percepatan 3 m/s<sup>2</sup>. Masing-masing gaya pada mobil kiri dan kanan secara berturut-turut dan mobil yang lebih rusak adalah ……",
+        opsi: ["2500 N & 2700 N, mobil kanan lebih rusak", "2500 N & 2700 N, mobil kiri lebih rusak", "2000 N & 2500 N, mobil kanan lebih rusak", "2000 N & 2500 N, mobil kiri lebih rusak"],
+        kunci: 1
+      },
+      {
+        id: 27,
+        stimulus: "",
+        pertanyaan: "Naufal sedang mencoba mendayung perahu di sebuah danau. Agar perahu dapat bergerak maju ke depan, Naufal harus mengayuh dayungnya ke arah belakang menembus air. Konsep Hukum III Newton yang menjelaskan peristiwa ini adalah...",
+        opsi: ["Air menahan dayung ke depan (Aksi), dan dayung mendorong perahu ke belakang (Reaksi).", "Naufal mendorong dayung ke belakang (Aksi), dan perahu bergerak ke depan karena kehilangan massa (Reaksi).", "Gaya aksi dari dayung selalu lebih besar daripada gaya reaksi dari air sehingga perahu bisa melaju.", "Dayung mendorong air ke belakang (Aksi), dan air mendorong dayung ke depan (Reaksi) sehingga perahu maju."],
+        kunci: 3
+      },
+      {
+        id: 28,
+        stimulus: "",
+        pertanyaan: "Setelah melakukan penilaian lari sebanyak 2 putaran di sekolah, tubuh Hasan mengeluarkan banyak sekali keringat dan nafasnya menjadi sangat cepat. Peristiwa keluarnya keringat dari tubuh Hasan merupakan bukti bahwa makhluk hidup memiliki ciri...",
+        opsi: ["Memerlukan nutrisi", "Tumbuh dan berkembang", "Menanggapi rangsangan", "Mengeluarkan zat sisa (ekskresi)"],
+        kunci: 3
+      },
+      {
+        id: 29,
+        stimulus: "",
+        pertanyaan: "Khansa dan Natasya ketika berjalan keluar dari bioskop yang gelap menuju area parkir yang disinari matahari terik maka secara otomatis kelopak mata mereka berdua langsung mengernyit dan pupil mata mengecil. Gejala tersebut merupakan salah satu ciri makhluk hidup yaitu …..",
+        opsi: ["Peka terhadap rangsangan (iritabilitas)", "Mengalami pertumbuhan dan perkembangan", "Memerlukan energi", "Bernafas"],
+        kunci: 0
+      },
+      {
+        id: 30,
+        stimulus: "",
+        pertanyaan: "Seorang murid melakukan eksperimen dengan meletakkan sebuah pot tanaman di dalam kotak kardus tertutup yang diberi satu lubang kecil di sisi kanan. Setelah satu minggu, batang tanaman tersebut tumbuh membelok ke arah lubang. Ciri makhluk hidup yang paling tepat ditunjukkan oleh tanaman tersebut beserta alasannya adalah...",
+        opsi: ["Bergerak pasif, karena tanaman tidak berpindah tempat melainkan hanya batangnya yang memanjang.", "Tumbuh dan berkembang, karena tanaman mengalami pertambahan tinggi batang yang signifikan.", "Peka terhadap rangsang (iritabilitas), karena tanaman merespons arah datangnya cahaya matahari melalui lubang tersebut.", "Memerlukan nutrisi, karena tanaman membutuhkan cahaya untuk melakukan proses fotosintesis."],
+        kunci: 2
+      }
+    ];
+
+    // Fungsi Navigasi Halaman
+    function showPage(pageId) {
+      document.querySelectorAll("#app > div").forEach(div => div.classList.add("hidden"));
+      document.getElementById(pageId).classList.remove("hidden");
+    }
+
+    // Sistem Render Soal & Navigasi
+    function renderDaftarSoal() {
+      document.getElementById("total-soal").textContent = soalList.length;
+      const navContainer = document.getElementById("nav-soal");
+      navContainer.innerHTML = "";
+      soalList.forEach((_, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `w-10 h-10 rounded-lg text-xs font-700 transition-smooth border-2 ${userAnswers[idx] !== undefined ? 'bg-blue-900 text-white border-blue-900' : 'bg-slate-100 text-slate-600 border-slate-200'}`;
+        btn.textContent = idx + 1;
+        btn.onclick = () => { currentSoalIndex = idx; renderSoal(); };
+        navContainer.appendChild(btn);
+      });
+    }
+
+    function renderSoal() {
+      if(soalList.length === 0) return;
+      const soal = soalList[currentSoalIndex];
+      document.getElementById("current-soal").textContent = currentSoalIndex + 1;
+      document.getElementById("soal-stimulus").innerHTML = soal.stimulus || "";
+      document.getElementById("soal-pertanyaan").textContent = soal.pertanyaan;
+      
+      const opsiContainer = document.getElementById("soal-opsi");
+      opsiContainer.innerHTML = "";
+      
+      const abcd = ["A", "B", "C", "D"];
+      soal.opsi.forEach((opsiTxt, idx) => {
+        const isSelected = userAnswers[currentSoalIndex] === idx;
+        const btn = document.createElement("button");
+        btn.className = `w-full text-left p-4 rounded-xl border-2 transition-smooth flex items-center gap-4 ${isSelected ? 'border-blue-900 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`;
+        btn.innerHTML = `<div class="w-8 h-8 rounded-lg flex items-center justify-center font-700 text-sm ${isSelected ? 'bg-blue-900 text-white' : 'bg-slate-100 text-slate-600'}">${abcd[idx]}</div><span class="text-slate-700 font-500 text-sm">${opsiTxt}</span>`;
+        btn.onclick = () => { userAnswers[currentSoalIndex] = idx; renderSoal(); renderDaftarSoal(); };
+        opsiContainer.appendChild(btn);
+      });
+
+      document.getElementById("btn-prev-soal").disabled = currentSoalIndex === 0;
+      document.getElementById("btn-next-soal").textContent = currentSoalIndex === soalList.length - 1 ? "Periksa Hasil →" : "Selanjutnya →";
+      document.getElementById("progress-bar").style.width = `${((currentSoalIndex + 1) / soalList.length) * 100}%`;
+    }
+
+    // Timer Logic
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        if(sisaWaktu <= 0) {
+          clearInterval(timerInterval);
+          autoSubmitUjian();
+        } else {
+          sisaWaktu--;
+          const menit = Math.floor(sisaWaktu / 60);
+          const detik = sisaWaktu % 60;
+          document.getElementById("timer-text").textContent = `${menit.toString().padStart(2, '0')}:${detik.toString().padStart(2, '0')}`;
+        }
+      }, 1000);
+    }
+
+    // Handle Forms
+    document.getElementById("form-login-siswa").addEventListener("submit", (e) => {
+      e.preventDefault();
+      sessionData.nama = document.getElementById("inp-nama").value;
+      sessionData.nomor = document.getElementById("inp-nomor-siswa").value;
+      sessionData.kelas = document.getElementById("inp-kelas").value;
+      sessionData.mapel = document.getElementById("inp-mapel").value;
+
+      document.getElementById("info-nama").textContent = sessionData.nama;
+      document.getElementById("info-nomor").textContent = sessionData.nomor;
+      document.getElementById("info-kelas").textContent = sessionData.kelas;
+      document.getElementById("info-mapel").textContent = sessionData.mapel;
+
+      showPage("page-pre-exam");
+    });
+
+    document.getElementById("btn-start-exam").addEventListener("click", () => {
+      showPage("page-exam");
+      renderDaftarSoal();
+      renderSoal();
+      startTimer();
+      isExamActive = true; // Sistem Anti-Cheat Mulai Berjalan Aktif
+    });
+
+    document.getElementById("btn-prev-soal").onclick = () => { if(currentSoalIndex > 0) { currentSoalIndex--; renderSoal(); } };
+    document.getElementById("btn-next-soal").onclick = () => {
+      if(currentSoalIndex < soalList.length - 1) {
+        currentSoalIndex++;
+        renderSoal();
+      } else {
+        bukaHalamanEvaluasi();
+      }
+    };
+
+    document.getElementById("btn-akhiri-ujian").onclick = () => { isExamActive = false; bukaHalamanEvaluasi(); };
+    document.getElementById("btn-eval-back").onclick = () => { isExamActive = true; showPage("page-exam"); };
+
+    function bukaHalamanEvaluasi() {
+      showPage("page-evaluasi");
+      let benar = 0; let salah = 0;
+      let detailHtml = "";
+
+      soalList.forEach((soal, idx) => {
+        const jawabanSiswa = userAnswers[idx];
+        const status = jawabanSiswa === soal.kunci;
+        if(status) benar++; else salah++;
+        
+        detailHtml += `<div class="p-3 rounded-lg border ${status ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+          <strong>Soal ${idx+1}:</strong> ${status ? '✅ Benar' : '❌ Salah / Kosong'}
+        </div>`;
+      });
+
+      document.getElementById("eval-total-soal").textContent = soalList.length;
+      document.getElementById("eval-benar").textContent = benar;
+      document.getElementById("eval-salah").textContent = salah;
+      document.getElementById("eval-detail-soal").innerHTML = detailHtml;
+    }
+
+    // KIRIM DATA KE FIREBASE FIRESTORE (Aksi Utama Tombol Submit)
+    async function kirimDataKeFirebase(alasanSelesai = "Normal") {
+      isExamActive = false; // Matikan deteksi cheat agar tidak loop
+      
+      let benar = 0;
+      soalList.forEach((soal, idx) => {
+        if(userAnswers[idx] === soal.kunci) benar++;
+      });
+      const nilaiAkhir = soalList.length > 0 ? Math.round((benar / soalList.length) * 100) : 0;
+
+      // Pemetaan data yang dikirim ke Cloud Database
+      const payload = {
+        nomor_siswa: sessionData.nomor,
+        nama_siswa: sessionData.nama,
+        kelas: sessionData.kelas,
+        mata_pelajaran: sessionData.mapel,
+        jawaban_siswa: userAnswers,
+        jumlah_benar: benar,
+        nilai_akhir: nilaiAkhir,
+        jumlah_pelanggaran_cheat: jumlahPelanggaran,
+        status_selesai: alasanSelesai,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      // Siapkan layar pengisian hasil akhir
+      document.getElementById("hasil-benar").textContent = benar;
+      document.getElementById("hasil-salah").textContent = soalList.length - benar;
+      document.getElementById("hasil-nama").textContent = sessionData.nama;
+      document.getElementById("hasil-nomor").textContent = sessionData.nomor;
+      document.getElementById("hasil-kelas").textContent = sessionData.kelas;
+      document.getElementById("hasil-mapel").textContent = sessionData.mapel;
+
+      try {
+        await db.collection("jawaban_siswa").add(payload);
+        clearInterval(timerInterval);
+        
+        if (alasanSelesai === "Kecurangan Terkunci") {
+          alert("❌ Ujian Anda dihentikan otomatis dan kertas ujian dikunci karena terdeteksi keluar dari halaman ujian lebih dari 3 kali!");
+          showPage("page-hasil"); // Langsung lempar ke halaman hasil, lewati gform survei karena dikunci
+          document.getElementById("hasil-status").textContent = "⚠️ Dikunci Otomatis (Terdeteksi Curang)";
+          document.getElementById("hasil-status").className = "text-sm text-red-600 mb-6 font-600";
+        } else {
+          alert("🎉 Sukses! Jawaban Anda berhasil dikirim ke database server.");
+          showPage("page-survei-gform");
+        }
+      } catch (error) {
+        console.error("Gagal simpan Firebase:", error);
+        alert("❌ Gangguan koneksi internet. Gagal mengirim data, silakan klik tombol Kirim lagi!");
+        return false;
+      }
+      return true;
+    }
+
+    document.getElementById("btn-eval-submit").addEventListener("click", async () => {
+      const btn = document.getElementById("btn-eval-submit");
+      btn.disabled = true;
+      btn.textContent = "Mengirim data ke database...";
+      const sukses = await kirimDataKeFirebase("Selesai Mandiri");
+      if(!sukses) {
+        btn.disabled = false;
+        btn.textContent = "Kirim Jawaban Akhir";
+      }
+    });
+
+    function autoSubmitUjian() {
+      alert("⏱️ Waktu Anda telah habis! Sistem mengirimkan jawaban otomatis.");
+      kirimDataKeFirebase("Waktu Habis");
+    }
+
+    // Navigasi dari Survei GForm ke Halaman Hasil
+    document.getElementById("btn-lanjut-hasil").addEventListener("click", () => {
+      showPage("page-hasil");
+    });
+
+    document.getElementById("btn-logout").onclick = () => {
+      location.reload();
+    };
+
+    // ==========================================
+    // 🛡️ INJEKSI SISTEM ANTI-CHEAT (iOS & PC) 🛡️
+    // ==========================================
+    function handlePelanggaranCheat() {
+      if (!isExamActive) return;
+
+      jumlahPelanggaran++;
+      
+      // 1. Tampilkan bar warning merah di atas area soal
+      const warningBar = document.getElementById("anti-cheat-warning");
+      warningBar.innerHTML = `<div class="text-red-900 font-700 text-xs sm:text-base">⚠️ PERINGATAN KELUAR HALAMAN (${jumlahPelanggaran}/${MAKSIMAL_PELANGGARAN})! Jangan buka tab lain atau aplikasi lain!</div>`;
+      warningBar.classList.remove("hidden");
+
+      // 2. Berikan pop-up alert tegas agar browser iOS/Android fokus kembali
+      alert(`⚠️ Peringatan ke-${jumlahPelanggaran}!\n\nAnda terdeteksi meninggalkan halaman ujian. Jika Anda melakukan ini sampai ${MAKSIMAL_PELANGGARAN} kali, lembar jawaban Anda akan otomatis dikunci dan dikirim ke server!`);
+
+      // 3. Jika pelanggaran menembus batas maksimal (3 kali), kunci paksa ujian
+      if (jumlahPelanggaran >= MAKSIMAL_PELANGGARAN) {
+        kirimDataKeFirebase("Kecurangan Terkunci");
+      }
+    }
+
+    // Deteksi Event 1: Mengganti tab, membuka tab baru, atau meminimalkan browser (Sangat efektif di Android, iOS, PC)
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        handlePelanggaranCheat();
+      }
+    });
+
+    // Deteksi Event 2: Browser kehilangan fokus utama (Membuka Control Center iOS, split screen, pop-up WA, dll)
+    window.addEventListener("blur", () => {
+      // Diberikan delay sedikit agar tidak terpicu secara tidak sengaja oleh drop-down keyboard bawaan smartphone
+      setTimeout(() => {
+        if (document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "SELECT") {
+          handlePelanggaranCheat();
+        }
+      }, 300);
+    });
+
+    lucide.createIcons();
+  </script>
+ </body>
+</html>
